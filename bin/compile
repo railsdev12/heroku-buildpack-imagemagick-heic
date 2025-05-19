@@ -80,7 +80,7 @@ cd imagemagick
   --with-heic=yes \
   PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig" \
   CFLAGS="-I$INSTALL_DIR/include" \
-  LDFLAGS="-L$INSTALL_DIR/lib"
+  LDFLAGS="-L$INSTALL_DIR/lib -lsharpyuv"
 
 make -j4
 
