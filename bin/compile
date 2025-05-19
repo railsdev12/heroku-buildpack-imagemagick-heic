@@ -10,6 +10,10 @@ export PATH="$INSTALL_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$INSTALL_DIR/lib:$LD_LIBRARY_PATH"
 export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
+# Install build tools
+echo "[INFO] Installing build tools..."
+apt-get update -qq && apt-get install -y autoconf automake libtool pkg-config cmake > /dev/null
+
 # Create temp dir
 TMP_DIR=$(mktemp -d)
 echo "[INFO] Using temp dir: $TMP_DIR"
@@ -39,6 +43,7 @@ echo "[INFO] Building libheif..."
 curl -sL https://github.com/strukturag/libheif/releases/download/v1.17.6/libheif-1.17.6.tar.gz -o libheif.tar.gz
 mkdir libheif && tar -xzf libheif.tar.gz -C libheif --strip-components=1
 cd libheif
+autoreconf -fi
 ./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
 make -j4 && make install
 cd "$TMP_DIR"
