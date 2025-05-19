@@ -38,6 +38,10 @@ cd libde265
 ./autogen.sh
 ./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
 make -j4 && make install
+
+echo "[DEBUG] libde265 built files:"
+ls -lh "$INSTALL_DIR/lib/libde265"* || echo "libde265 not found in $INSTALL_DIR/lib"
+
 cd "$TMP_DIR"
 
 # Build and install libheif (via CMake)
