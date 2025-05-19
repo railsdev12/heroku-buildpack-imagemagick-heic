@@ -80,7 +80,7 @@ cd imagemagick
   --with-heic=yes \
   PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig" \
   CFLAGS="-I$INSTALL_DIR/include" \
-  LDFLAGS="-L$INSTALL_DIR/lib -lsharpyuv"
+  LDFLAGS="-L$INSTALL_DIR/lib -lsharpyuv -Wl,--copy-dt-needed-entries"
 
 make -j4
 
@@ -106,3 +106,4 @@ rm -rf "$TMP_DIR"
 
 # Final message
 echo "[SUCCESS] ImageMagick with HEIC support installed to $INSTALL_DIR"
+Fix HEIC link failure with sharpyuv
