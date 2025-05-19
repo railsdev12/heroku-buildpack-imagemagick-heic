@@ -1,91 +1,54 @@
-#!/bin/bash
-
-indent() {
-  sed -u 's/^/       /'
-}
-
-echo "-----> Install ImageMagick"
+#!/bin/sh
 
 BUILD_DIR=$1
 CACHE_DIR=$2
-VENDOR_DIR="$BUILD_DIR/vendor"
-mkdir -p $VENDOR_DIR
-INSTALL_DIR="$VENDOR_DIR/imagemagick"
-mkdir -p $INSTALL_DIR
-IMAGE_MAGICK_VERSION="${IMAGE_MAGICK_VERSION:-6.9.5-10}"
-CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION.tar.gz"
 
-if [ ! -f $CACHE_FILE ]; then
-  # install imagemagick
-  IMAGE_MAGICK_FILE="ImageMagick-$IMAGE_MAGICK_VERSION.tar.xz"
-  IMAGE_MAGICK_DIR="ImageMagick-$IMAGE_MAGICK_VERSION"
-  # SSL cert used on imagemagick not recognized by heroku.
-  IMAGE_MAGICK_URL="http://www.imagemagick.org/download/releases/$IMAGE_MAGICK_FILE"
+INSTALL_DIR="$BUILD_DIR/vendor"
+mkdir -p "$INSTALL_DIR"
 
-  echo "-----> Downloading ImageMagick from $IMAGE_MAGICK_URL"
-  wget $IMAGE_MAGICK_URL -P $BUILD_DIR | indent
+export PATH="$INSTALL_DIR/bin:$PATH"
+export LD_LIBRARY_PATH="$INSTALL_DIR/lib:$LD_LIBRARY_PATH"
+export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
-  echo "-----> Extracting ImageMagick from $BUILD_DIR/$IMAGE_MAGICK_FILE"
-  if [ ! -f $BUILD_DIR/$IMAGE_MAGICK_FILE ]; then
-    echo "Error: Unable to download ImageMagick" | indent
-    ls $BUILD_DIR | indent
-    exit 1;
-  fi
-  tar xvf $BUILD_DIR/$IMAGE_MAGICK_FILE | indent
+# Create temp dir
+TMP_DIR=$(mktemp -d)
+cd "$TMP_DIR"
 
-  echo "-----> Building ImageMagick"
-  cd $IMAGE_MAGICK_DIR
-  export CPPFLAGS="-I$INSTALL_DIR/include"
-  export LDFLAGS="-L$INSTALL_DIR/lib"
-  ./configure --prefix=$INSTALL_DIR --without-gvc
-  make && make install
-  cd ..
-  rm -rf $IMAGE_MAGICK_DIR
+# Build and install x265
+curl -LO https://bitbucket.org/multicoreware/x265_git/get/master.tar.gz
+mkdir x265 && tar -xzf master.tar.gz -C x265 --strip-components=1
+cd x265/build/linux
+cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DENABLE_SHARED=off ../../source
+make -j4 && make install
+cd "$TMP_DIR"
 
-  # cache for future deploys
-  echo "-----> Caching ImageMagick installation"
-  cd $VENDOR_DIR
-  REL_INSTALL_DIR="imagemagick"
-  tar czf $REL_INSTALL_DIR.tar.gz $REL_INSTALL_DIR
-  mv $REL_INSTALL_DIR.tar.gz $CACHE_FILE
+# Build and install libde265
+curl -LO https://github.com/strukturag/libde265/archive/refs/tags/v1.0.8.tar.gz
+mkdir libde265 && tar -xzf v1.0.8.tar.gz -C libde265 --strip-components=1
+cd libde265
+./autogen.sh
+./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
+make -j4 && make install
+cd "$TMP_DIR"
 
-else
-  # cache exists, extract it
-  echo "-----> Extracting ImageMagick $CACHE_FILE => $VENDOR_DIR"
-  tar xzf $CACHE_FILE -C $VENDOR_DIR
-fi
+# Build and install libheif
+curl -LO https://github.com/strukturag/libheif/releases/download/v1.17.6/libheif-1.17.6.tar.gz
+mkdir libheif && tar -xzf libheif-1.17.6.tar.gz -C libheif --strip-components=1
+cd libheif
+./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
+make -j4 && make install
+cd "$TMP_DIR"
 
-echo "-----> Writing policy file"
-mkdir -p $INSTALL_DIR/etc/ImageMagick
-cat > $INSTALL_DIR/policy.xml <<EOF
-<policymap>
-  <policy domain="coder" rights="none" pattern="EPHEMERAL" />
-  <policy domain="coder" rights="none" pattern="HTTPS" />
-  <policy domain="coder" rights="none" pattern="MVG" />
-  <policy domain="coder" rights="none" pattern="MSL" />
-</policymap>
-EOF
+# Build and install ImageMagick
+curl -LO https://imagemagick.org/archive/ImageMagick.tar.gz
+mkdir imagemagick && tar -xzf ImageMagick.tar.gz -C imagemagick --strip-components=1
+cd imagemagick
+./configure --prefix="$INSTALL_DIR" --with-heic --disable-shared --enable-static
+make -j4 && make install
 
-# update PATH and LD_LIBRARY_PATH
-echo "-----> Updating environment variables"
-PROFILE_PATH="$BUILD_DIR/.profile.d/imagemagick.sh"
-RUNTIME_INSTALL_PATH="\$HOME/vendor/imagemagick"
-mkdir -p $(dirname $PROFILE_PATH)
-echo "export PATH=$RUNTIME_INSTALL_PATH/bin:\$PATH" >> $PROFILE_PATH
-echo "export LD_LIBRARY_PATH=$RUNTIME_INSTALL_PATH/lib:\$LD_LIBRARY_PATH" >> $PROFILE_PATH
-echo "export MAGICK_CONFIGURE_PATH=$RUNTIME_INSTALL_PATH" >> $PROFILE_PATH
+# Cleanup
+echo "Cleaning up..."
+rm -rf "$TMP_DIR"
 
-# DOWNLOAD_URL="http://www.imagemagick.org/download/ImageMagick-6.9.2-0.tar.gz"
-
-# echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
-
-# cd $BUILD_DIR
-# mkdir -p $VENDOR_DIR
-# cd $VENDOR_DIR
-# curl -L --silent $DOWNLOAD_URL | tar xz
-
-# echo "exporting PATH and LIBRARY_PATH" | indent
-# PROFILE_PATH="$BUILD_DIR/.profile.d/imagemagick.sh"
-# mkdir -p $(dirname $PROFILE_PATH)
-# echo 'export PATH="$PATH:$HOME/vendor/ImageMagick-6.9.2/bin"' >> $PROFILE_PATH
-# echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/vendor/ImageMagick-6.9.2/lib"' >> $PROFILE_PATH
+# Final message
+echo "ImageMagick with HEIC support installed to $INSTALL_DIR"
