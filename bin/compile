@@ -84,7 +84,7 @@ cd imagemagick
   CFLAGS="-I$INSTALL_DIR/include" \
   LDFLAGS="-L$INSTALL_DIR/lib -lx265 -laom -lde265 -lsharpyuv -Wl,--copy-dt-needed-entries"
 
-make -j4
+make -j4 V=1
 
 # Debug: Confirm CLI binaries were built before install
 echo "[INFO] Checking ImageMagick build tree for CLI tools:"
