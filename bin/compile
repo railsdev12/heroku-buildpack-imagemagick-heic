@@ -83,6 +83,10 @@ cd imagemagick
   LDFLAGS="-L$INSTALL_DIR/lib"
 make -j4 && make install
 
+# Debug: Show where binaries were installed
+echo "[INFO] Verifying ImageMagick binaries:"
+find "$INSTALL_DIR" -name convert -o -name mogrify -o -name identify
+
 # Copy critical binaries to vendor/bin (ensure they are in correct location)
 mkdir -p "$INSTALL_DIR/bin"
 cp "$INSTALL_DIR/bin/convert" "$INSTALL_DIR/bin/" 2>/dev/null || true
