@@ -27,9 +27,7 @@ cd x265/build/linux
 cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DENABLE_SHARED=off ../../source
 make -j4
 
-# Debug: Confirm CLI binaries were built before install
-echo "[INFO] Checking build tree for CLI tools:"
-find . -name convert -o -name mogrify -o -name identify && make install
+make install
 cd "$TMP_DIR"
 
 # Build and install libde265
@@ -85,3 +83,11 @@ cd imagemagick
   PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig" \
   CFLAGS="-I$INSTALL_DIR/include" \
   LDFLAGS="-L$INSTALL_DIR/lib -lx265 -laom -lde265 -lsharpyuv -Wl,--copy-dt-needed-entries"
+
+make -j4
+
+# Debug: Confirm CLI binaries were built before install
+echo "[INFO] Checking ImageMagick build tree for CLI tools:"
+find . -name convert -o -name mogrify -o -name identify
+
+make install
