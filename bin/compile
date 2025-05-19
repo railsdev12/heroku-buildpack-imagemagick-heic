@@ -12,7 +12,7 @@ export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 # Install build tools
 echo "[INFO] Installing build tools..."
-apt-get update -qq && apt-get install -y autoconf automake libtool pkg-config cmake > /dev/null
+apt-get update -qq && apt-get install -y autoconf automake libtool pkg-config cmake ninja-build > /dev/null
 
 # Create temp dir
 TMP_DIR=$(mktemp -d)
@@ -38,13 +38,13 @@ cd libde265
 make -j4 && make install
 cd "$TMP_DIR"
 
-# Build and install libheif
+# Build and install libheif (via CMake)
 echo "[INFO] Building libheif..."
 curl -sL https://github.com/strukturag/libheif/releases/download/v1.17.6/libheif-1.17.6.tar.gz -o libheif.tar.gz
 mkdir libheif && tar -xzf libheif.tar.gz -C libheif --strip-components=1
 cd libheif
-autoreconf -fi
-./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF ..
 make -j4 && make install
 cd "$TMP_DIR"
 
