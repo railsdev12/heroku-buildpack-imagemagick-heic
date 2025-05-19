@@ -83,6 +83,12 @@ cd imagemagick
   LDFLAGS="-L$INSTALL_DIR/lib"
 make -j4 && make install
 
+# Copy critical binaries to vendor/bin
+mkdir -p "$INSTALL_DIR/bin"
+cp "$INSTALL_DIR"/ImageMagick-*/bin/convert "$INSTALL_DIR/bin/" 2>/dev/null || true
+cp "$INSTALL_DIR"/ImageMagick-*/bin/mogrify "$INSTALL_DIR/bin/" 2>/dev/null || true
+cp "$INSTALL_DIR"/ImageMagick-*/bin/identify "$INSTALL_DIR/bin/" 2>/dev/null || true
+
 # Cleanup
 echo "[INFO] Cleaning up..."
 rm -rf "$TMP_DIR"
