@@ -80,30 +80,4 @@ cd imagemagick
   --with-heic=yes \
   PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig" \
   CFLAGS="-I$INSTALL_DIR/include" \
-  LDFLAGS="-L$INSTALL_DIR/lib -lsharpyuv -Wl,--copy-dt-needed-entries"
-
-make -j4
-
-# Debug: Confirm CLI binaries were built before install
-echo "[INFO] Checking build tree for CLI tools:"
-find . -name convert -o -name mogrify -o -name identify
-
-make install
-
-# Debug: Show where binaries were installed
-echo "[INFO] Verifying ImageMagick binaries:"
-find "$INSTALL_DIR" -name convert -o -name mogrify -o -name identify
-
-# Copy critical binaries to vendor/bin (ensure they are in correct location)
-mkdir -p "$INSTALL_DIR/bin"
-cp "$INSTALL_DIR/bin/convert" "$INSTALL_DIR/bin/" 2>/dev/null || true
-cp "$INSTALL_DIR/bin/mogrify" "$INSTALL_DIR/bin/" 2>/dev/null || true
-cp "$INSTALL_DIR/bin/identify" "$INSTALL_DIR/bin/" 2>/dev/null || true
-
-# Cleanup
-echo "[INFO] Cleaning up..."
-rm -rf "$TMP_DIR"
-
-# Final message
-echo "[SUCCESS] ImageMagick with HEIC support installed to $INSTALL_DIR"
-Fix HEIC link failure with sharpyuv
+  LDFLAGS="-L$INSTALL_DIR/lib -lx265 -laom -lde265 -lsharpyuv -Wl,--copy-dt-needed-entries"
