@@ -25,7 +25,11 @@ curl -sL https://bitbucket.org/multicoreware/x265_git/get/master.tar.gz -o x265.
 mkdir x265 && tar -xzf x265.tar.gz -C x265 --strip-components=1
 cd x265/build/linux
 cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DENABLE_SHARED=off ../../source
-make -j4 && make install
+make -j4
+
+# Debug: Confirm CLI binaries were built before install
+echo "[INFO] Checking build tree for CLI tools:"
+find . -name convert -o -name mogrify -o -name identify && make install
 cd "$TMP_DIR"
 
 # Build and install libde265
