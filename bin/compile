@@ -12,19 +12,22 @@ export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 # Create temp dir
 TMP_DIR=$(mktemp -d)
+echo "[INFO] Using temp dir: $TMP_DIR"
 cd "$TMP_DIR"
 
 # Build and install x265
-curl -LO https://bitbucket.org/multicoreware/x265_git/get/master.tar.gz
-mkdir x265 && tar -xzf master.tar.gz -C x265 --strip-components=1
+echo "[INFO] Building x265..."
+curl -sL https://bitbucket.org/multicoreware/x265_git/get/master.tar.gz -o x265.tar.gz
+mkdir x265 && tar -xzf x265.tar.gz -C x265 --strip-components=1
 cd x265/build/linux
 cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DENABLE_SHARED=off ../../source
 make -j4 && make install
 cd "$TMP_DIR"
 
 # Build and install libde265
-curl -LO https://github.com/strukturag/libde265/archive/refs/tags/v1.0.8.tar.gz
-mkdir libde265 && tar -xzf v1.0.8.tar.gz -C libde265 --strip-components=1
+echo "[INFO] Building libde265..."
+curl -sL https://github.com/strukturag/libde265/archive/refs/tags/v1.0.8.tar.gz -o libde265.tar.gz
+mkdir libde265 && tar -xzf libde265.tar.gz -C libde265 --strip-components=1
 cd libde265
 ./autogen.sh
 ./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
@@ -32,23 +35,41 @@ make -j4 && make install
 cd "$TMP_DIR"
 
 # Build and install libheif
-curl -LO https://github.com/strukturag/libheif/releases/download/v1.17.6/libheif-1.17.6.tar.gz
-mkdir libheif && tar -xzf libheif-1.17.6.tar.gz -C libheif --strip-components=1
+echo "[INFO] Building libheif..."
+curl -sL https://github.com/strukturag/libheif/releases/download/v1.17.6/libheif-1.17.6.tar.gz -o libheif.tar.gz
+mkdir libheif && tar -xzf libheif.tar.gz -C libheif --strip-components=1
 cd libheif
 ./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
 make -j4 && make install
 cd "$TMP_DIR"
 
+# Confirm libheif.pc exists
+echo "[INFO] Checking for libheif.pc..."
+if [ ! -f "$INSTALL_DIR/lib/pkgconfig/libheif.pc" ]; then
+  echo "[ERROR] libheif.pc not found. HEIC support may not be detected."
+  exit 1
+else
+  echo "[INFO] libheif.pc found."
+fi
+
 # Build and install ImageMagick
-curl -LO https://imagemagick.org/archive/ImageMagick.tar.gz
+echo "[INFO] Building ImageMagick with HEIC support..."
+curl -sL https://imagemagick.org/archive/ImageMagick.tar.gz -o ImageMagick.tar.gz
 mkdir imagemagick && tar -xzf ImageMagick.tar.gz -C imagemagick --strip-components=1
 cd imagemagick
-./configure --prefix="$INSTALL_DIR" --with-heic --disable-shared --enable-static
+./configure \
+  --prefix="$INSTALL_DIR" \
+  --disable-shared \
+  --enable-static \
+  --with-heic=yes \
+  PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig" \
+  CFLAGS="-I$INSTALL_DIR/include" \
+  LDFLAGS="-L$INSTALL_DIR/lib"
 make -j4 && make install
 
 # Cleanup
-echo "Cleaning up..."
+echo "[INFO] Cleaning up..."
 rm -rf "$TMP_DIR"
 
 # Final message
-echo "ImageMagick with HEIC support installed to $INSTALL_DIR"
+echo "[SUCCESS] ImageMagick with HEIC support installed to $INSTALL_DIR"
