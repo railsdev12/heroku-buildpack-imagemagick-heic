@@ -81,7 +81,14 @@ cd imagemagick
   PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig" \
   CFLAGS="-I$INSTALL_DIR/include" \
   LDFLAGS="-L$INSTALL_DIR/lib"
-make -j4 && make install
+
+make -j4
+
+# Debug: Confirm CLI binaries were built before install
+echo "[INFO] Checking build tree for CLI tools:"
+find . -name convert -o -name mogrify -o -name identify
+
+make install
 
 # Debug: Show where binaries were installed
 echo "[INFO] Verifying ImageMagick binaries:"
