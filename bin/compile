@@ -42,8 +42,11 @@ cd libde265
 ./autogen.sh
 export CFLAGS="-fPIC"
 export CXXFLAGS="-fPIC"
-./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
-make -s -j4 && make -s install
+./configure --prefix="$INSTALL_DIR" \
+  --disable-shared --enable-static \
+  --quiet
+make -s -j4 > "$BUILD_DIR/make-libde265.log" 2>&1
+make -s install >> "$BUILD_DIR/make-libde265.log" 2>&1
 
 cd "$TMP_DIR"
 
