@@ -23,7 +23,7 @@ echo "[INFO] Building x265..."
 curl -sL https://bitbucket.org/multicoreware/x265_git/get/master.tar.gz -o x265.tar.gz
 mkdir x265 && tar -xzf x265.tar.gz -C x265 --strip-components=1
 cd x265/build/linux
-cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DENABLE_SHARED=off ../../source
+cmake -Wno-dev -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DENABLE_SHARED=off ../../source
 make -s -j4
 make -s install
 
@@ -51,7 +51,7 @@ mkdir libheif && tar -xzf libheif.tar.gz -C libheif --strip-components=1
 cd libheif
 mkdir build && cd build
 
-cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+cmake -Wno-dev -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=Release \
       -DWITH_GDK_PIXBUF=OFF \
       -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
