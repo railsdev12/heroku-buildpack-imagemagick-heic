@@ -12,7 +12,7 @@ export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 # Install build tools
 echo "[INFO] Installing build tools..."
-apt-get update -qq && apt-get install -y autoconf automake libtool pkg-config cmake ninja-build > /dev/null
+apt-get update -qq && apt-get install -y autoconf automake -s libtool pkg-config cmake -s ninja-build > /dev/null
 
 # Create temp dir
 TMP_DIR=$(mktemp -d)
@@ -23,9 +23,9 @@ echo "[INFO] Building x265..."
 curl -sL https://bitbucket.org/multicoreware/x265_git/get/master.tar.gz -o x265.tar.gz
 mkdir x265 && tar -xzf x265.tar.gz -C x265 --strip-components=1
 cd x265/build/linux
-cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DENABLE_SHARED=off ../../source
-make -j4
-make install
+cmake -s -DCmake -s_INSTALL_PREFIX="$INSTALL_DIR" -DENABLE_SHARED=off ../../source
+make -s -j4
+make -s install
 
 # Final environment configuration
 export MAGICK_CONFIGURE_PATH="$INSTALL_DIR/etc/ImageMagick-7"
@@ -40,7 +40,7 @@ cd libde265
 export CFLAGS="-fPIC"
 export CXXFLAGS="-fPIC"
 ./configure --prefix="$INSTALL_DIR" --disable-shared --enable-static
-make -j4 && make install
+make -s -j4 && make -s install
 
 cd "$TMP_DIR"
 
@@ -51,14 +51,14 @@ mkdir libheif && tar -xzf libheif.tar.gz -C libheif --strip-components=1
 cd libheif
 mkdir build && cd build
 
-cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_BUILD_TYPE=Release \
+cmake -s -DCmake -s_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DCmake -s_BUILD_TYPE=Release \
       -DWITH_GDK_PIXBUF=OFF \
-      -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
-      .. > "$BUILD_DIR/cmake-libheif.log" 2>&1
+      -DCmake -s_PREFIX_PATH="$INSTALL_DIR" \
+      .. > "$BUILD_DIR/cmake -s-libheif.log" 2>&1
 
-make -j4 > "$BUILD_DIR/make-libheif.log" 2>&1
-make install
+make -s -j4 > "$BUILD_DIR/make -s-libheif.log" 2>&1
+make -s install
 cd "$TMP_DIR"
 
 # Confirm libheif.pc exists
@@ -81,5 +81,5 @@ cd imagemagick
   CFLAGS="-I$INSTALL_DIR/include" \
   LDFLAGS="-L$INSTALL_DIR/lib -lx265 -laom -lde265 -lsharpyuv -lm -ldl -lpthread -Wl,--copy-dt-needed-entries"
 
-make -j4
-make install
+make -s -j4
+make -s install
