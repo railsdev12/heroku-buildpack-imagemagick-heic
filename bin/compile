@@ -9,8 +9,6 @@ mkdir -p "$INSTALL_DIR"
 export PATH="$INSTALL_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$INSTALL_DIR/lib:$LD_LIBRARY_PATH"
 export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
-export CFLAGS="-fPIC -I$INSTALL_DIR/include"
-export CXXFLAGS="-fPIC -I$INSTALL_DIR/include"
 
 # Install build tools
 echo "[INFO] Installing build tools..."
@@ -42,6 +40,8 @@ curl -sL https://github.com/strukturag/libde265/archive/refs/tags/v1.0.8.tar.gz 
 mkdir libde265 && tar -xzf libde265.tar.gz -C libde265 --strip-components=1
 cd libde265
 ./autogen.sh
+export CFLAGS="-fPIC"
+export CXXFLAGS="-fPIC"
 ./configure --prefix="$INSTALL_DIR" \
   --disable-shared --enable-static \
   --quiet
@@ -57,14 +57,11 @@ mkdir libheif && tar -xzf libheif.tar.gz -C libheif --strip-components=1
 cd libheif
 mkdir build && cd build
 
-cmake .. \
-  -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_SHARED_LIBS=OFF \
-  -DWITH_GDK_PIXBUF=OFF \
-  -DWITH_X265=ON \
-  -DWITH_LIBDE265=ON \
-  -DCMAKE_PREFIX_PATH="$INSTALL_DIR"
+cmake -Wno-dev -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DWITH_GDK_PIXBUF=OFF \
+      -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
+      .. > "$BUILD_DIR/cmake-libheif.log" 2>&1
 
 make -s -j4 > "$BUILD_DIR/make-libheif.log" 2>&1
 make -s install
@@ -81,16 +78,14 @@ echo "[INFO] Building ImageMagick with HEIC support..."
 curl -sL https://imagemagick.org/archive/ImageMagick.tar.gz -o ImageMagick.tar.gz
 mkdir imagemagick && tar -xzf ImageMagick.tar.gz -C imagemagick --strip-components=1
 cd imagemagick
-
-export LDFLAGS="-L$INSTALL_DIR/lib -static -lx265 -laom -lde265 -lsharpyuv -lm -ldl -lpthread -Wl,--copy-dt-needed-entries"
-
 ./configure \
   --prefix="$INSTALL_DIR" \
   --enable-shared \
   --enable-static \
   --with-heic=yes \
-  --with-modules \
-  --disable-dependency-tracking
+  PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig" \
+  CFLAGS="-I$INSTALL_DIR/include" \
+  LDFLAGS="-L$INSTALL_DIR/lib -lx265 -laom -lde265 -lsharpyuv -lm -ldl -lpthread -Wl,--copy-dt-needed-entries"
 
 make -s -j4 V=0
 make -s V=0 install
