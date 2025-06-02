@@ -51,8 +51,9 @@ make -s install >> "$BUILD_DIR/make-libde265.log" 2>&1
 cd "$TMP_DIR"
 
 # Build and install libheif
+LIBHEIF_VERSION=1.18.0
 echo "[INFO] Building libheif..."
-curl -sL https://github.com/strukturag/libheif/releases/download/v1.17.6/libheif-1.17.6.tar.gz -o libheif.tar.gz
+curl -sL https://github.com/strukturag/libheif/releases/download/v$LIBHEIF_VERSION/libheif-$LIBHEIF_VERSION.tar.gz -o libheif.tar.gz
 mkdir libheif && tar -xzf libheif.tar.gz -C libheif --strip-components=1
 cd libheif
 mkdir build && cd build
